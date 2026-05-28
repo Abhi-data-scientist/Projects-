@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Prediction System</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="card">
+
+            <h1>Loan Prediction System</h1>
+
+            <form action="/predict" method="POST">
+
+                <!-- Gender -->
+                <div class="input-group">
+                    <label>Gender</label>
+
+                    <select name="gender" required>
+                        <option value="">Select Gender</option>
+                        <option value="1">Male</option>
+                        <option value="0">Female</option>
+                    </select>
+                </div>
+
+                <!-- Married -->
+                <div class="input-group">
+                    <label>Married</label>
+
+                    <select name="married" required>
+                        <option value="">Select Option</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+
+                <!-- Dependents -->
+                <div class="input-group">
+                    <label>Dependents</label>
+
+                    <select name="dependents" required>
+                        <option value="">Select Dependents</option>
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3+">3+</option>
+                    </select>
+                </div>
+
+                <!-- Education -->
+                <div class="input-group">
+                    <label>Education</label>
+
+                    <select name="education" required>
+                        <option value="">Select Education</option>
+                        <option value="0">Graduate</option>
+                        <option value="1">Not Graduate</option>
+                    </select>
+                </div>
+
+                <!-- Self Employed -->
+                <div class="input-group">
+                    <label>Self Employed</label>
+
+                    <select name="self_employed" required>
+                        <option value="">Select Option</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+
+                <!-- Applicant Income -->
+                <div class="input-group">
+                    <label>Applicant Income</label>
+
+                    <input
+                        type="number"
+                        name="applicant_income"
+                        placeholder="Enter Applicant Income"
+                        required
+                    >
+                </div>
+
+                <!-- Coapplicant Income -->
+                <div class="input-group">
+                    <label>Coapplicant Income</label>
+
+                    <input
+                        type="number"
+                        name="coapplicant_income"
+                        placeholder="Enter Coapplicant Income"
+                        required
+                    >
+                </div>
+
+                <!-- Loan Amount -->
+                <div class="input-group">
+                    <label>Loan Amount</label>
+
+                    <input
+                        type="number"
+                        name="loan_amount"
+                        placeholder="Enter Loan Amount"
+                        required
+                    >
+                </div>
+
+                <!-- Loan Amount Term -->
+                <div class="input-group">
+                    <label>Loan Amount Term</label>
+
+                    <input
+                        type="number"
+                        name="loan_amount_term"
+                        placeholder="Enter Loan Amount Term"
+                        required
+                    >
+                </div>
+
+                <!-- Credit History -->
+                <div class="input-group">
+                    <label>Credit History</label>
+
+                    <select name="credit_history" required>
+                        <option value="">Select Credit History</option>
+                        <option value="1">1</option>
+                        <option value="0">0</option>
+                    </select>
+                </div>
+
+                <!-- Property Area -->
+                <div class="input-group">
+                    <label>Property Area</label>
+
+                    <select name="property_area" required>
+                        <option value="">Select Property Area</option>
+                        <option value="2">Urban</option>
+                        <option value="1">Semiurban</option>
+                        <option value="0">Rural</option>
+                    </select>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit">
+                    Predict Loan Status
+                </button>
+
+            </form>
+
+            <!-- Prediction Result -->
+
+            {% if result %}
+
+                <div class="result">
+
+                    <h2>{{ result }}</h2>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</body>
+</html>
