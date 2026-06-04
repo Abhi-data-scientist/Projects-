@@ -1,0 +1,5 @@
+file_name,category,confidence
+bank_statement_sample.pdf,BankStatement,0.972
+contract_sample.pdf,Unknown,0.64
+invoice_sample.pdf,Invoice,0.91
+resume_sample.pdf,Resume,0.964

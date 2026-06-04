@@ -8,9 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 
-# ==========================
 # TRAIN MODEL
-# ==========================
 
 data = pd.read_csv("train_data.csv")
 
@@ -22,9 +20,7 @@ model = Pipeline([
 model.fit(data["text"], data["category"])
 
 
-# ==========================
 # TEXT PREPROCESSING
-# ==========================
 
 def preprocess(text):
     text = text.lower()
@@ -36,9 +32,7 @@ def preprocess(text):
     return text.strip()
 
 
-# ==========================
 # PDF TEXT EXTRACTION
-# ==========================
 
 def extract_text(pdf_path):
 
@@ -62,9 +56,7 @@ def extract_text(pdf_path):
         raise Exception(str(e))
 
 
-# ==========================
 # CLASSIFY PDFs
-# ==========================
 
 pdf_folder = "pdfs"
 
@@ -107,9 +99,7 @@ for file in os.listdir(pdf_folder):
         print(f"{file} -> ERROR")
 
 
-# ==========================
 # SAVE OUTPUT
-# ==========================
 
 pd.DataFrame(results).to_csv(
     "output.csv",
