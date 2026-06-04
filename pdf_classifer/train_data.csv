@@ -1,0 +1,30 @@
+text,category
+invoice number payment due amount tax,Invoice
+invoice generated gst total amount bill,Invoice
+payment receipt invoice customer amount,Invoice
+tax invoice issued amount payable,Invoice
+invoice details subtotal gst amount,Invoice
+
+employment agreement employee company salary,Contract
+service contract terms conditions agreement,Contract
+legal agreement signed parties contract,Contract
+contract duration obligations employee,Contract
+confidentiality agreement legal contract,Contract
+
+resume python machine learning projects,Resume
+software engineer skills education experience,Resume
+data scientist resume skills pandas numpy,Resume
+professional experience certifications resume,Resume
+technical skills internship projects resume,Resume
+
+research methodology results discussion abstract,Research
+research paper literature review analysis,Research
+scientific study experiment findings research,Research
+journal publication methodology conclusion,Research
+academic research dataset evaluation,Research
+
+bank account transaction balance statement,BankStatement
+monthly statement withdrawal deposit account,BankStatement
+bank summary credit debit transaction,BankStatement
+account holder balance transaction history,BankStatement
+financial statement bank deposit details,BankStatement
