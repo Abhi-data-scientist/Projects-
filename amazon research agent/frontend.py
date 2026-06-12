@@ -462,7 +462,7 @@ st.markdown("""
     <div class="hero-logo">🔍</div>
     <div>
         <div class="hero-title">Product <span>Research</span> Agent</div>
-        <div class="hero-sub">// powered by ebay finding api + rule-based scoring</div>
+        <div class="hero-sub">//  finding api + rule-based scoring</div>
     </div>
     <div class="hero-badge">AI-POWERED</div>
 </div>
