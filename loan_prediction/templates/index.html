@@ -101,24 +101,26 @@
 
                 <!-- Loan Amount -->
                 <div class="input-group">
-                    <label>Loan Amount</label>
+                    <label>Loan Amount (in &#8377; Thousands)</label>
 
                     <input
                         type="number"
                         name="loan_amount"
-                        placeholder="Enter Loan Amount"
+                        placeholder="Example: 140 = &#8377;1,40,000"
+                        value="{{ form_data.get('loan_amount', '') }}"
                         required
                     >
                 </div>
 
                 <!-- Loan Amount Term -->
                 <div class="input-group">
-                    <label>Loan Amount Term</label>
+                    <label>Loan Amount Term (in Months)</label>
 
                     <input
                         type="number"
                         name="loan_amount_term"
-                        placeholder="Enter Loan Amount Term"
+                        placeholder="Example: 360 = 30 years"
+                        value="{{ form_data.get('loan_amount_term', '') }}"
                         required
                     >
                 </div>
@@ -147,9 +149,10 @@
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit">
-                    Predict Loan Status
-                </button>
+                <div class="button-group">
+                    <button type="submit">Predict Loan Status</button>
+                    <button type="button" class="clear-button" onclick="window.location.href='{{ url_for('home') }}'">Clear Form</button>
+                </div>
 
             </form>
 
@@ -168,6 +171,15 @@
         </div>
 
     </div>
+
+    <script>
+        // Keep submitted values visible after the prediction result is shown.
+        const savedFormData = {{ form_data | tojson }};
+        Object.entries(savedFormData).forEach(([name, value]) => {
+            const field = document.querySelector(`[name="${name}"]`);
+            if (field) field.value = value;
+        });
+    </script>
 
 </body>
 </html>

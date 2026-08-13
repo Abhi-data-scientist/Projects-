@@ -21,7 +21,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index.html', form_data={})
 
 # -----------------------------------
 # Prediction Route
@@ -31,7 +31,8 @@ def home():
 def predict():
 
     # Get all form values
-    features = [x for x in request.form.values()]
+    form_data = request.form.to_dict()
+    features = list(form_data.values())
 
     # Handle Dependents
     if features[2] == '3+':
@@ -54,7 +55,8 @@ def predict():
 
     return render_template(
         'index.html',
-        result=result
+        result=result,
+        form_data=form_data
     )
 
 # -----------------------------------

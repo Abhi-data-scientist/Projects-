@@ -84,6 +84,24 @@ button:hover{
     transform: translateY(-2px);
 }
 
+.button-group{
+    grid-column: span 2;
+    display: flex;
+    gap: 12px;
+}
+
+.button-group button{
+    flex: 1;
+}
+
+.clear-button{
+    background: #64748b;
+}
+
+.clear-button:hover{
+    background: #475569;
+}
+
 .result{
     margin-top: 30px;
     text-align: center;
@@ -104,6 +122,11 @@ button:hover{
 
     button{
         grid-column: span 1;
+    }
+
+    .button-group{
+        grid-column: span 1;
+        flex-direction: column;
     }
 
     .card{

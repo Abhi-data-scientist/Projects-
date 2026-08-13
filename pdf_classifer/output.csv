@@ -1,5 +1,0 @@
-file_name,category,confidence
-bank_statement_sample.pdf,BankStatement,0.471
-contract_sample.pdf,Contract,0.433
-invoice_sample.pdf,Invoice,0.501
-resume_sample.pdf,Resume,0.437
