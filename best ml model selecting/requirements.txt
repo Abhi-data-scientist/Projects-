@@ -1,0 +1,12 @@
+pandas
+numpy
+scikit-learn
+joblib
+# Optional boosting models used automatically when installed:
+xgboost
+lightgbm
+catboost
+# For the API layer:
+fastapi
+uvicorn
+python-multipart

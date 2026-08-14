@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ML Model Selector</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <p class="eyebrow">FASTAPI · SCIKIT-LEARN</p>
+      <h1>Find the best model for your dataset.</h1>
+      <p>Upload a CSV, select its target column, and compare supported machine-learning models.</p>
+    </section>
+
+    <section class="card">
+      <form id="train-form">
+        <label>
+          Dataset (CSV)
+          <input id="file" name="file" type="file" accept=".csv,text/csv" required />
+        </label>
+        <div class="grid">
+          <label>
+            Target column
+            <input id="target-column" name="target_column" placeholder="e.g. price" required />
+          </label>
+          <label>
+            Task type
+            <select id="task-type" name="task_type">
+              <option value="auto">Auto detect</option>
+              <option value="classification">Classification</option>
+              <option value="regression">Regression</option>
+            </select>
+          </label>
+        </div>
+        <label class="checkbox">
+          <input id="use-pca" name="use_pca" type="checkbox" />
+          Use PCA for dimensionality reduction
+        </label>
+        <button id="submit-button" type="submit">Train & find best model</button>
+      </form>
+      <p class="hint">The complete model pipeline is saved automatically and can be used through the API.</p>
+    </section>
+
+    <section id="loading" class="card hidden" aria-live="polite">
+      <div class="spinner"></div>
+      <div><strong>Training models…</strong><p>This can take a moment for larger datasets.</p></div>
+    </section>
+
+    <section id="error" class="card error hidden" aria-live="assertive"></section>
+
+    <section id="results" class="hidden">
+      <div class="result-heading">
+        <div>
+          <p class="eyebrow">TRAINING COMPLETE</p>
+          <h2 id="best-model"></h2>
+        </div>
+        <span id="model-id" class="model-id"></span>
+      </div>
+      <div class="card">
+        <h3>What happened</h3>
+        <ol id="process-list"></ol>
+      </div>
+      <div class="card">
+        <h3>Model leaderboard</h3>
+        <div class="table-wrap"><table id="leaderboard"></table></div>
+      </div>
+    </section>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>

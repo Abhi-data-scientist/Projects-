@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadFlow | Lead Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0f1a;
+    --bg-elevated: #141828;
+    --bg-card: rgba(20, 24, 42, 0.75);
+    --fg: #eef0f6;
+    --fg-dim: #8b92a8;
+    --fg-muted: #555c72;
+    --accent: #ff6a3d;
+    --accent-glow: rgba(255, 106, 61, 0.35);
+    --accent-hover: #ff8a5c;
+    --mint: #2dd4a8;
+    --mint-glow: rgba(45, 212, 168, 0.3);
+    --surface: rgba(255, 255, 255, 0.04);
+    --surface-hover: rgba(255, 255, 255, 0.07);
+    --border: rgba(255, 255, 255, 0.07);
+    --border-accent: rgba(255, 106, 61, 0.3);
+    --score-high-bg: rgba(45, 212, 168, 0.12);
+    --score-high-fg: #2dd4a8;
+    --score-mid-bg: rgba(255, 200, 55, 0.12);
+    --score-mid-fg: #ffc837;
+    --score-low-bg: rgba(255, 90, 90, 0.12);
+    --score-low-fg: #ff5a5a;
+    --radius: 14px;
+    --radius-lg: 20px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    font-family: "DM Sans", sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    overflow-x: hidden;
+  }
+
+  /* ── Animated background ── */
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .bg-orb {
+    position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4;
+    animation: orbFloat 18s ease-in-out infinite alternate;
+  }
+  .bg-orb--1 { width: 600px; height: 600px; top: -20%; left: -10%; background: radial-gradient(circle, rgba(255,106,61,0.25), transparent 70%); animation-duration: 20s; }
+  .bg-orb--2 { width: 500px; height: 500px; bottom: -15%; right: -8%; background: radial-gradient(circle, rgba(45,212,168,0.2), transparent 70%); animation-duration: 24s; animation-delay: -6s; }
+  .bg-orb--3 { width: 350px; height: 350px; top: 40%; left: 55%; background: radial-gradient(circle, rgba(255,106,61,0.1), transparent 70%); animation-duration: 16s; animation-delay: -3s; }
+  @keyframes orbFloat {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(40px, -30px) scale(1.08); }
+    100% { transform: translate(-20px, 20px) scale(0.95); }
+  }
+
+  /* Subtle grid pattern */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 20%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 20%, transparent 80%);
+  }
+
+  /* ── Particles canvas ── */
+  #particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+  /* ── Layout ── */
+  .page {
+    position: relative; z-index: 1;
+    width: min(1180px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 28px 0 64px;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 52px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 11px;
+    font-family: Manrope, sans-serif; font-weight: 800;
+    font-size: 21px; letter-spacing: -0.8px; color: var(--fg);
+  }
+  .brand-mark {
+    width: 36px; height: 36px; display: grid; place-items: center;
+    border-radius: 11px; color: #fff;
+    background: linear-gradient(135deg, var(--accent), #e04a1a);
+    box-shadow: 0 6px 20px var(--accent-glow);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .brand-mark:hover { transform: rotate(-8deg) scale(1.05); box-shadow: 0 8px 28px var(--accent-glow); }
+  .brand-mark svg { width: 19px; }
+  .top-pill {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 14px; border: 1px solid var(--border); border-radius: 99px;
+    background: var(--surface); color: var(--fg-dim);
+    font-size: 12px; font-weight: 600;
+    backdrop-filter: blur(8px);
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .top-pill:hover { border-color: var(--border-accent); background: var(--surface-hover); }
+  .top-pill .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--mint);
+    box-shadow: 0 0 8px var(--mint-glow);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* ── Hero ── */
+  .hero { max-width: 740px; margin: 0 auto 38px; text-align: center; }
+  .eyebrow {
+    display: inline-block; margin-bottom: 14px; padding: 5px 14px;
+    border: 1px solid var(--border-accent); border-radius: 99px;
+    color: var(--accent); font-size: 11px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    background: rgba(255, 106, 61, 0.06);
+    animation: fadeSlideDown 0.6s ease-out both;
+  }
+  h1 {
+    margin: 0 0 16px;
+    font-family: Manrope, sans-serif;
+    font-size: clamp(34px, 5.2vw, 56px);
+    line-height: 1.08; letter-spacing: -2.6px;
+    animation: fadeSlideDown 0.6s 0.1s ease-out both;
+  }
+  h1 .accent-word {
+    background: linear-gradient(135deg, var(--accent), #ffb347);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    max-width: 540px; margin: 0 auto;
+    color: var(--fg-dim); font-size: 16.5px; line-height: 1.65;
+    animation: fadeSlideDown 0.6s 0.2s ease-out both;
+  }
+  @keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Search Card ── */
+  .search-card {
+    max-width: 940px; margin: 0 auto;
+    padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+    backdrop-filter: blur(20px);
+    animation: fadeSlideDown 0.6s 0.3s ease-out both;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .search-card:focus-within {
+    border-color: var(--border-accent);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35), 0 0 0 1px var(--border-accent), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .search-row { display: flex; gap: 10px; }
+  .query-wrap {
+    flex: 1; display: flex; align-items: center; gap: 10px;
+    min-width: 0; padding: 0 16px;
+    border: 1px solid transparent; border-radius: 12px;
+    background: var(--surface);
+    transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+  }
+  .query-wrap:focus-within {
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 4px rgba(255, 106, 61, 0.1);
+  }
+  .query-wrap svg { flex: 0 0 auto; color: var(--fg-muted); width: 19px; transition: color 0.25s; }
+  .query-wrap:focus-within svg { color: var(--accent); }
+
+  input { font: inherit; }
+  input[type=text] {
+    width: 100%; min-width: 0; padding: 16px 0; border: 0; outline: 0;
+    color: var(--fg); background: transparent; font-size: 15px;
+  }
+  input[type=text]::placeholder { color: var(--fg-muted); }
+
+  button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 0; border-radius: 12px;
+    font: 600 14px "DM Sans", sans-serif; cursor: pointer;
+    transition: transform 0.18s, background 0.18s, box-shadow 0.18s, opacity 0.18s;
+  }
+  button:hover:not(:disabled) { transform: translateY(-1px); }
+  button:active:not(:disabled) { transform: translateY(0); }
+  button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .search-btn {
+    min-width: 146px; padding: 0 22px; height: auto;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), #e04a1a);
+    box-shadow: 0 8px 20px var(--accent-glow);
+    position: relative; overflow: hidden;
+  }
+  .search-btn::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+    transform: translateX(-100%);
+    transition: transform 0.5s;
+  }
+  .search-btn:hover:not(:disabled)::before { transform: translateX(100%); }
+  .search-btn:hover:not(:disabled) { background: linear-gradient(135deg, var(--accent-hover), var(--accent)); box-shadow: 0 10px 28px var(--accent-glow); }
+
+  /* ── Options ── */
+  .options {
+    display: flex; align-items: center; gap: 22px; flex-wrap: wrap;
+    padding: 14px 6px 4px; color: var(--fg-dim); font-size: 13px;
+  }
+  .options label {
+    display: flex; align-items: center; gap: 7px; white-space: nowrap;
+    cursor: pointer; transition: color 0.2s;
+  }
+  .options label:hover { color: var(--fg); }
+  .options input[type=number] {
+    width: 52px; padding: 5px 3px; border: 0;
+    border-bottom: 1px solid var(--border); outline: 0;
+    color: var(--fg); text-align: center; background: transparent;
+    transition: border-color 0.2s;
+  }
+  .options input[type=number]:focus { border-bottom-color: var(--accent); }
+  .options input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; }
+
+  /* ── Status bar ── */
+  #status {
+    max-width: 940px; margin: 18px auto 0;
+    padding: 12px 18px; border: 1px solid var(--border-accent); border-radius: 12px;
+    background: rgba(255, 106, 61, 0.06);
+    color: var(--accent-hover); font-size: 13px; font-weight: 500;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #status .spinner {
+    width: 14px; height: 14px; border: 2px solid rgba(255,106,61,0.2);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Results Section ── */
+  .results-section {
+    max-width: 1080px; margin: 44px auto 0;
+    animation: fadeSlideDown 0.5s 0.5s ease-out both;
+  }
+  .results-heading {
+    display: flex; align-items: end; justify-content: space-between; gap: 15px;
+    margin-bottom: 16px;
+  }
+  .results-heading h2 {
+    margin: 0; font-family: Manrope, sans-serif; font-size: 21px; letter-spacing: -0.7px;
+  }
+  .results-heading span { color: var(--fg-muted); font-size: 13px; }
+
+  .results-card {
+    overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03);
+    backdrop-filter: blur(16px);
+    transition: box-shadow 0.3s;
+  }
+
+  /* ── Empty state ── */
+  .empty {
+    display: grid; min-height: 290px; place-items: center;
+    padding: 40px; text-align: center; color: var(--fg-dim); font-size: 14px;
+  }
+  .empty-inner { max-width: 280px; }
+  .empty-icon {
+    width: 52px; height: 52px; display: grid; place-items: center;
+    margin: 0 auto 14px; border-radius: 16px;
+    color: var(--accent); background: rgba(255,106,61,0.08);
+    font-size: 22px;
+    border: 1px solid rgba(255,106,61,0.15);
+  }
+  .empty strong { display: block; margin-bottom: 7px; color: var(--fg); font-size: 15px; }
+
+  /* ── Loading shimmer ── */
+  .loading-state { padding: 40px; text-align: center; }
+  .loading-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
+  .loading-dots span {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent); opacity: 0.3;
+    animation: dotBounce 1.4s ease-in-out infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dotBounce {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1.1); }
+  }
+  .loading-state p { color: var(--fg-dim); font-size: 14px; }
+  .loading-state strong { color: var(--fg); }
+
+  /* ── Table ── */
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; min-width: 760px; border-collapse: collapse; }
+  th, td {
+    padding: 16px 20px; text-align: left;
+    border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  th {
+    color: var(--fg-muted); background: rgba(255,255,255,0.02);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+  }
+  tr:last-child td { border-bottom: 0; }
+  tbody tr { transition: background 0.15s; }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+  .company { color: var(--fg); font-weight: 700; }
+  .contact { color: var(--fg-dim); font-family: monospace; font-size: 12.5px; letter-spacing: 0.2px; }
+  .website {
+    color: var(--accent); text-decoration: none; font-weight: 600;
+    transition: color 0.2s;
+  }
+  .website:hover { color: var(--accent-hover); text-decoration: underline; }
+
+  .score {
+    display: inline-grid; min-width: 36px; place-items: center;
+    padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;
+  }
+  .score-high { color: var(--score-high-fg); background: var(--score-high-bg); }
+  .score-mid  { color: var(--score-mid-fg);  background: var(--score-mid-bg); }
+  .score-low  { color: var(--score-low-fg);  background: var(--score-low-bg); }
+
+  /* ── Export bar ── */
+  .export-bar { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+  .export-bar button {
+    padding: 9px 16px; border: 1px solid var(--border); border-radius: 10px;
+    color: var(--fg-dim); background: var(--surface); font-size: 12px;
+    backdrop-filter: blur(6px);
+    transition: border-color 0.2s, color 0.2s, background 0.2s, transform 0.18s;
+  }
+  .export-bar button:hover {
+    border-color: var(--border-accent); color: var(--accent);
+    background: rgba(255,106,61,0.06); transform: translateY(-1px);
+  }
+
+  /* ── Toast ── */
+  .toast-container {
+    position: fixed; top: 20px; right: 20px; z-index: 1000;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .toast {
+    padding: 12px 20px; border-radius: 12px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--fg); font-size: 13px; font-weight: 500;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+    animation: toastIn 0.35s ease-out;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast--success { border-color: rgba(45,212,168,0.3); }
+  .toast--success .toast-icon { color: var(--mint); }
+  .toast--error { border-color: rgba(255,90,90,0.3); }
+  .toast--error .toast-icon { color: var(--score-low-fg); }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(30px); } }
+
+  /* ── Stat pills (result header) ── */
+  .stat-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+  .stat-pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 99px;
+    background: var(--surface); border: 1px solid var(--border);
+    font-size: 12px; color: var(--fg-dim);
+  }
+  .stat-pill .val { color: var(--fg); font-weight: 700; }
+
+  /* ── Row entrance animation ── */
+  tbody tr {
+    animation: rowFade 0.35s ease-out both;
+  }
+  @keyframes rowFade {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .page { width: min(100% - 28px, 1180px); padding-top: 18px; }
+    .topbar { margin-bottom: 36px; }
+    .hero { text-align: left; }
+    h1 { letter-spacing: -1.8px; }
+    .search-row { flex-direction: column; }
+    .search-btn { height: 50px; }
+    .options { gap: 12px 16px; }
+    .results-section { margin-top: 32px; }
+    .results-heading { align-items: start; flex-direction: column; gap: 6px; }
+    .stat-pills { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ── Focus visible ── */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ── Reduced motion ── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+</style>
+</head>
+<body>
+
+<!-- Animated background layers -->
+<div class="bg-layer" aria-hidden="true">
+  <div class="bg-orb bg-orb--1"></div>
+  <div class="bg-orb bg-orb--2"></div>
+  <div class="bg-orb bg-orb--3"></div>
+</div>
+<div class="bg-grid" aria-hidden="true"></div>
+<canvas id="particles" aria-hidden="true"></canvas>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+<main class="page">
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19V5m0 14h16M8 15l4-4 3 3 5-6"/>
+        </svg>
+      </span>
+      LeadFlow
+    </div>
+    <span class="top-pill"><span class="dot"></span>AI lead intelligence</span>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="eyebrow">Find your next customers</div>
+    <h1>Turn a simple search into <span class="accent-word">qualified leads.</span></h1>
+    <p>Discover businesses, extract contact details, and export a clean list — without the manual research.</p>
+  </section>
+
+  <!-- Search card -->
+  <section class="search-card" role="search">
+    <div class="search-row">
+      <div class="query-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
+        <input type="text" id="query" placeholder="Try: digital marketing agencies in Jaipur" autocomplete="off" aria-label="Search query">
+      </div>
+      <button class="search-btn" id="searchBtn" onclick="startSearch()">Find leads <span>→</span></button>
+    </div>
+    <div class="options">
+      <label>Max results <input type="number" id="maxResults" value="20" min="5" max="50" aria-label="Max results"></label>
+      <label>Min score <input type="number" id="minScore" value="0" min="0" max="10" aria-label="Minimum score"></label>
+      <label><input type="checkbox" id="requireEmail"> Email required</label>
+      <label><input type="checkbox" id="requirePhone"> Phone required</label>
+    </div>
+  </section>
+
+  <!-- Status -->
+  <div id="status" role="status" style="display:none;"></div>
+
+  <!-- Results -->
+  <section class="results-section" aria-label="Lead results">
+    <div class="results-heading">
+      <h2>Lead results</h2>
+      <span id="resultCount">Ready when you are</span>
+    </div>
+    <div class="results-card" id="resultsContainer">
+      <div class="empty">
+        <div class="empty-inner">
+          <div class="empty-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
+          </div>
+          <strong>Your leads will appear here</strong>
+          Search for a business type and location to build your first list.
+        </div>
+      </div>
+    </div>
+    <div class="export-bar" id="exportBar" style="display:none;">
+      <button onclick="exportLeads('csv')">Download CSV</button>
+      <button onclick="exportLeads('json')">JSON</button>
+      <button onclick="exportLeads('xlsx')">Excel</button>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ══════════════════════════════════════
+   Particle background
+   ══════════════════════════════════════ */
+(function initParticles() {
+  const canvas = document.getElementById("particles");
+  const ctx = canvas.getContext("2d");
+  let W, H, particles = [];
+  const COUNT = 50;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  for (let i = 0; i < COUNT; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.4 + 0.4,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      alpha: Math.random() * 0.35 + 0.08
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,106,61,${p.alpha})`;
+      ctx.fill();
+    }
+    // Draw faint connections
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(255,106,61,${0.04 * (1 - dist / 120)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  // Respect reduced motion
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    requestAnimationFrame(draw);
+  }
+})();
+
+/* ══════════════════════════════════════
+   Toast notifications
+   ══════════════════════════════════════ */
+function showToast(message, type = "success", duration = 3500) {
+  const container = document.getElementById("toastContainer");
+  const toast = document.createElement("div");
+  toast.className = `toast toast--${type}`;
+  const icon = type === "success" ? "✓" : "✕";
+  toast.innerHTML = `<span class="toast-icon">${icon}</span>${escapeHtml(message)}`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = "toastOut 0.3s ease-in forwards";
+    toast.addEventListener("animationend", () => toast.remove());
+  }, duration);
+}
+
+/* ══════════════════════════════════════
+   Backend logic (unchanged API integration)
+   ══════════════════════════════════════ */
+const API_BASE = "";
+let currentJobId = null;
+
+const escapeHtml = value =>
+  String(value ?? "-").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
+
+function setStatus(text, show = true) {
+  const el = document.getElementById("status");
+  if (show) {
+    el.innerHTML = `<span class="spinner"></span>${escapeHtml(text)}`;
+    el.style.display = "flex";
+  } else {
+    el.style.display = "none";
+  }
+}
+
+function scoreClass(score) {
+  return score >= 7 ? "score-high" : score >= 4 ? "score-mid" : "score-low";
+}
+
+function renderLeads(leads) {
+  const container = document.getElementById("resultsContainer");
+  const countEl = document.getElementById("resultCount");
+
+  if (!leads.length) {
+    countEl.textContent = "No matches found";
+    container.innerHTML = `
+      <div class="empty">
+        <div class="empty-inner">
+          <div class="empty-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
+          </div>
+          <strong>No leads found</strong>
+          Try a broader business category, a different city, or reduce the minimum score.
+        </div>
+      </div>`;
+    document.getElementById("exportBar").style.display = "none";
+    return;
+  }
+
+  // Compute stats
+  const avgScore = (leads.reduce((s, l) => s + l.score, 0) / leads.length).toFixed(1);
+  const withEmail = leads.filter(l => l.email && l.email !== "-").length;
+  const withPhone = leads.filter(l => l.phone && l.phone !== "-").length;
+
+  countEl.innerHTML = `<span class="stat-pills">
+    <span class="stat-pill"><span class="val">${leads.length}</span> leads</span>
+    <span class="stat-pill">avg score <span class="val">${avgScore}</span></span>
+    <span class="stat-pill"><span class="val">${withEmail}</span> emails</span>
+    <span class="stat-pill"><span class="val">${withPhone}</span> phones</span>
+  </span>`;
+
+  const rows = leads.map((l, i) => {
+    const delay = Math.min(i * 50, 600);
+    return `<tr style="animation-delay:${delay}ms">
+      <td class="company">${escapeHtml(l.company_name)}</td>
+      <td class="contact">${escapeHtml(l.email)}</td>
+      <td class="contact">${escapeHtml(l.phone)}</td>
+      <td><a class="website" href="${escapeHtml(l.source_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(l.website || l.source_url)}</a></td>
+      <td><span class="score ${scoreClass(l.score)}">${escapeHtml(l.score)}</span></td>
+    </tr>`;
+  }).join("");
+
+  container.innerHTML = `
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Company</th><th>Email</th><th>Phone</th><th>Website</th><th>Score</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+
+  document.getElementById("exportBar").style.display = "flex";
+  showToast(`${leads.length} leads found — avg score ${avgScore}`, "success");
+}
+
+/* ── Search initiation ── */
+async function startSearch() {
+  const query = document.getElementById("query").value.trim();
+  if (query.length < 3) {
+    showToast("Enter at least 3 characters to search.", "error");
+    return;
+  }
+
+  const btn = document.getElementById("searchBtn");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner" style="width:14px;height:14px;border-width:2px;"></span> Searching…`;
+  document.getElementById("exportBar").style.display = "none";
+  document.getElementById("resultCount").textContent = "Research in progress";
+
+  document.getElementById("resultsContainer").innerHTML = `
+    <div class="loading-state">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <strong>Building your lead list</strong><br>
+      <p style="margin-top:8px">This can take a moment while we search and verify sources.</p>
+    </div>`;
+
+  setStatus("Starting search...");
+
+  const payload = {
+    query,
+    max_results: parseInt(document.getElementById("maxResults").value) || 20,
+    min_score: parseInt(document.getElementById("minScore").value) || 0,
+    require_email: document.getElementById("requireEmail").checked,
+    require_phone: document.getElementById("requirePhone").checked
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/api/search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      setStatus("Error: " + JSON.stringify(err.detail));
+      showToast("Search failed — check your query.", "error");
+      resetButton(btn);
+      return;
+    }
+
+    const data = await res.json();
+    currentJobId = data.job_id;
+    listenProgress(currentJobId, btn);
+  } catch (e) {
+    setStatus("Request failed: " + e.message);
+    showToast("Connection error — please try again.", "error");
+    resetButton(btn);
+  }
+}
+
+function resetButton(btn) {
+  btn.disabled = false;
+  btn.innerHTML = 'Find leads <span>→</span>';
+}
+
+/* ── SSE progress listener ── */
+function listenProgress(jobId, btn) {
+  const source = new EventSource(`${API_BASE}/api/progress/${jobId}`);
+
+  source.onmessage = async event => {
+    const data = JSON.parse(event.data);
+
+    if (data.stage === "parsing_query")        setStatus("Understanding your search...");
+    else if (data.stage === "discovering")      setStatus("Searching the web for sources...");
+    else if (data.stage === "discovered")       setStatus(`Found ${data.total_urls} sources. Starting crawl...`);
+    else if (data.stage === "crawling")         setStatus(`Crawling ${data.total} pages...`);
+    else if (data.stage === "crawled")          setStatus(`Crawled ${data.processed} pages. Extracting data...`);
+    else if (data.stage === "extracting")       setStatus("Extracting contact information...");
+    else if (data.stage === "lead_found")       setStatus(`Processing ${data.leads_found} lead(s) (${data.index}/${data.total})...`);
+    else if (data.stage === "completed") {
+      setStatus(`Done. ${data.leads_found} lead(s) found.`);
+      const res = await fetch(`${API_BASE}/api/results/${jobId}`);
+      const result = await res.json();
+      renderLeads(result.leads);
+      resetButton(btn);
+      source.close();
+    } else if (data.stage === "failed") {
+      setStatus("Search failed: " + (data.error || "unknown error"));
+      showToast("Search failed.", "error");
+      resetButton(btn);
+      source.close();
+    } else if (data.stage === "stream_closed") {
+      source.close();
+      resetButton(btn);
+    }
+  };
+
+  source.onerror = () => {
+    source.close();
+    resetButton(btn);
+  };
+}
+
+/* ── Export ── */
+function exportLeads(format) {
+  if (currentJobId) {
+    window.location.href = `${API_BASE}/api/export/${currentJobId}?format=${format}`;
+    showToast(`Exporting as ${format.toUpperCase()}...`, "success");
+  }
+}
+
+/* ── Keyboard shortcut ── */
+document.getElementById("query").addEventListener("keydown", e => {
+  if (e.key === "Enter") startSearch();
+});
+
+/* ── Subtle hover glow on search card ── */
+const searchCard = document.querySelector(".search-card");
+const queryInput = document.getElementById("query");
+queryInput.addEventListener("focus", () => searchCard.classList.add("focused"));
+queryInput.addEventListener("blur", () => searchCard.classList.remove("focused"));
+</script>
+</body>
+</html>
