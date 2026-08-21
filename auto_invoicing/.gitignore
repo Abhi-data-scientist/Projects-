@@ -1,0 +1,31 @@
+# Environment variables and virtual environments
+.env
+.venv/
+venv/
+env/
+ENV/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test, type-checking, and coverage artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Application-generated files
+logs/
+uploads/
+storage/
+*.sqlite3
+
+# IDE and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

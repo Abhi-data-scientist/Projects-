@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    body { font-family: 'Helvetica', Arial, sans-serif; color: #1a1a1a; margin: 40px; }
+    .header { display: flex; justify-content: space-between; border-bottom: 3px solid #0F172A; padding-bottom: 16px; }
+    .company-name { font-size: 22px; font-weight: bold; color: #0F172A; }
+    .invoice-title { font-size: 28px; font-weight: bold; color: #3B82F6; text-align: right; }
+    .meta { margin-top: 20px; display: flex; justify-content: space-between; }
+    .meta div { width: 45%; }
+    .label { font-size: 11px; color: #666; text-transform: uppercase; }
+    table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+    th { background: #0F172A; color: white; text-align: left; padding: 10px; font-size: 13px; }
+    td { padding: 10px; border-bottom: 1px solid #e5e5e5; font-size: 13px; }
+    .totals { width: 300px; margin-left: auto; margin-top: 20px; }
+    .totals div { display: flex; justify-content: space-between; padding: 6px 0; }
+    .grand-total { font-weight: bold; font-size: 16px; border-top: 2px solid #0F172A; padding-top: 10px; color: #0F172A; }
+    .footer { margin-top: 50px; font-size: 11px; color: #888; text-align: center; }
+</style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <div class="company-name">{{ company_name }}</div>
+            <div>{{ company_address }}</div>
+            {% if company_gstin %}<div>GSTIN: {{ company_gstin }}</div>{% endif %}
+        </div>
+        <div class="invoice-title">INVOICE</div>
+    </div>
+
+    <div class="meta">
+        <div>
+            <div class="label">Bill To</div>
+            <div><strong>{{ customer_name }}</strong></div>
+            {% if customer_email %}<div>{{ customer_email }}</div>{% endif %}
+            {% if customer_phone %}<div>{{ customer_phone }}</div>{% endif %}
+            {% if customer_address %}<div>{{ customer_address }}</div>{% endif %}
+        </div>
+        <div style="text-align: right;">
+            <div><span class="label">Invoice No:</span> <strong>{{ invoice_no }}</strong></div>
+            <div><span class="label">Date:</span> {{ invoice_date }}</div>
+            {% if due_date %}<div><span class="label">Due Date:</span> {{ due_date }}</div>{% endif %}
+            {% if order_reference %}<div><span class="label">Order Ref:</span> {{ order_reference }}</div>{% endif %}
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Line Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in line_items %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ "%.2f"|format(item.unit_price) }}</td>
+                <td>₹{{ "%.2f"|format(item.line_total) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <div><span>Subtotal</span><span>₹{{ "%.2f"|format(subtotal) }}</span></div>
+        <div><span>Tax ({{ tax_rate }}%)</span><span>₹{{ "%.2f"|format(tax_amount) }}</span></div>
+        <div class="grand-total"><span>Total</span><span>₹{{ "%.2f"|format(total_amount) }}</span></div>
+    </div>
+
+    <div class="footer">This is a system-generated invoice. &copy; {{ company_name }}</div>
+</body>
+</html>
