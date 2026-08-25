@@ -6,11 +6,9 @@ woh validation/calculator.py me Python code se hota hai (deterministic + auditab
 import json
 import re
 
-from google import genai
-
 from config import GEMINI_API_KEY, GEMINI_MODEL
 
-_client = genai.Client(api_key=GEMINI_API_KEY)
+_client = None
 
 EXTRACTION_PROMPT = """You are a data extraction engine for an invoicing system.
 Read the document text below and extract invoice-relevant information.
@@ -50,15 +48,48 @@ def _strip_code_fences(raw: str) -> str:
     return raw
 
 
-def extract_invoice_data(document_text: str) -> dict:
-    prompt = EXTRACTION_PROMPT.format(document_text=document_text[:12000])
+def _client_instance():
+    global _client
+    if not GEMINI_API_KEY:
+        raise ValueError("Gemini fallback configured nahi hai: GEMINI_API_KEY missing hai.")
+    if _client is None:
+        try:
+            from google import genai
+        except ImportError as exc:
+            raise ValueError("Gemini fallback ke liye `pip install -r requirements.txt` run karein.") from exc
+        _client = genai.Client(api_key=GEMINI_API_KEY)
+    return _client
 
-    response = _client.models.generate_content(
+
+def extract_invoice_data(document_text: str) -> dict:
+    """Legacy text-only LLM extractor, retained for callers that already have text."""
+    prompt = EXTRACTION_PROMPT.format(document_text=document_text[:12000])
+    response = _client_instance().models.generate_content(
         model=GEMINI_MODEL,
         contents=prompt,
     )
+    return _parse_response((response.text or "").strip())
 
-    raw_text = (response.text or "").strip()
+
+def extract_invoice_data_from_document(file_path: str, mime_type: str) -> dict:
+    """Last-resort multimodal fallback for PDFs/images unreadable by pdfplumber and OCR."""
+    try:
+        from google.genai import types
+    except ImportError as exc:
+        raise ValueError("Gemini fallback ke liye `pip install -r requirements.txt` run karein.") from exc
+    with open(file_path, "rb") as document:
+        document_part = types.Part.from_bytes(data=document.read(), mime_type=mime_type)
+    prompt = EXTRACTION_PROMPT.format(
+        document_text="The attached source document may be a scan or image. Read it directly."
+    )
+    response = _client_instance().models.generate_content(
+        model=GEMINI_MODEL,
+        contents=[prompt, document_part],
+    )
+    return _parse_response((response.text or "").strip())
+
+
+def _parse_response(raw_text: str) -> dict:
     cleaned = _strip_code_fences(raw_text)
 
     try:
@@ -79,5 +110,4 @@ def extract_invoice_data(document_text: str) -> dict:
     data.setdefault("tax_rate_percent", None)
     data.setdefault("due_date", None)
     data.setdefault("order_reference", None)
-
     return data

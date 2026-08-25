@@ -10,3 +10,4 @@ google-genai
 reportlab
 jinja2
 pymysql
+spacy

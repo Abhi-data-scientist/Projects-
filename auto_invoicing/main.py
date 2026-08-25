@@ -16,7 +16,8 @@ from database.queries import (
     generate_next_invoice_number,
     save_invoice,
 )
-from extraction.llm_structurer import extract_invoice_data
+from extraction.llm_structurer import extract_invoice_data_from_document
+from extraction.nlp_extractor import extract_invoice_data_with_nlp, has_minimum_invoice_data
 from extraction.ocr_engine import ocr_from_image, ocr_from_scanned_pdf
 from extraction.text_extractor import extract_text_from_pdf, is_text_sufficient
 from invoice.pdf_generator import generate_invoice_pdf
@@ -25,6 +26,7 @@ from validation.calculator import calculate_totals, compute_duplicate_hash, norm
 
 app = FastAPI(title="AI Auto-Invoicing System")
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
+MIME_TYPES = {".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
 
 
 async def process_invoice(file: UploadFile) -> dict:
@@ -45,22 +47,36 @@ async def process_invoice(file: UploadFile) -> dict:
 
     try:
         log_stage(request_id, "text_extraction", "started")
+        extraction_source = "pdfplumber"
         if ext == ".pdf":
             raw_text = extract_text_from_pdf(saved_path)
             if not is_text_sufficient(raw_text):
                 logger.info(f"[{request_id}] text layer weak, falling back to OCR")
                 raw_text = ocr_from_scanned_pdf(saved_path)
+                extraction_source = "ocr"
         else:
             raw_text = ocr_from_image(saved_path)
+            extraction_source = "ocr"
 
-        if not raw_text.strip():
-            log_stage(request_id, "text_extraction", "failed", {"reason": "no text extracted"})
-            raise HTTPException(status_code=422, detail="Document se koi text extract nahi ho paya.")
-        log_stage(request_id, "text_extraction", "success", {"chars_extracted": len(raw_text)})
+        if is_text_sufficient(raw_text):
+            log_stage(request_id, "text_extraction", "success", {"source": extraction_source, "chars_extracted": len(raw_text)})
+            log_stage(request_id, "nlp_regex_extraction", "started", {"source": extraction_source})
+            extracted = extract_invoice_data_with_nlp(raw_text)
+            log_stage(request_id, "nlp_regex_extraction", "success", {"extracted": extracted})
+        else:
+            log_stage(request_id, "text_extraction", "failed", {"source": extraction_source, "reason": "pdfplumber_and_ocr_text_insufficient"})
+            extracted = None
 
-        log_stage(request_id, "llm_extraction", "started")
-        extracted = extract_invoice_data(raw_text)
-        log_stage(request_id, "llm_extraction", "success", {"extracted": extracted})
+        # Gemini is deliberately the final fallback: it reads the original file only
+        # after local PDF extraction, OCR, Regex and NER could not produce an invoice.
+        if extracted is None or not has_minimum_invoice_data(extracted):
+            log_stage(request_id, "llm_fallback", "started", {"reason": "no_usable_local_invoice_data"})
+            try:
+                extracted = extract_invoice_data_from_document(saved_path, MIME_TYPES[ext])
+            except ValueError as exc:
+                log_stage(request_id, "llm_fallback", "failed", {"error": str(exc)})
+                raise HTTPException(status_code=422, detail=str(exc)) from exc
+            log_stage(request_id, "llm_fallback", "success", {"extracted": extracted})
 
         try:
             due_date = normalize_date(extracted.get("due_date"))

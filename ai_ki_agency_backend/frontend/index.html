@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI KI Agency</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#"><span>✦</span> AI KI AGENCY</a>
+        <p class="eyebrow">PIPELINE CONTROL</p>
+        <div id="agent-list" class="agent-list" aria-label="Pipeline agents"></div>
+        <div class="sidebar-footer">
+          <span class="status-dot"></span>
+          <span id="connection-status">API ready</span>
+        </div>
+      </aside>
+
+      <section class="chat-area">
+        <header class="chat-header">
+          <div>
+            <p class="eyebrow">MANUAL AGENT WORKFLOW</p>
+            <h1>Build with your agent team.</h1>
+          </div>
+          <button id="new-chat" class="ghost-button" type="button">New query</button>
+        </header>
+
+        <div id="messages" class="messages" aria-live="polite"></div>
+
+        <form id="query-form" class="composer">
+          <label class="sr-only" for="query">What would you like to build?</label>
+          <textarea id="query" rows="2" minlength="3" placeholder="Describe what you want to build…" required></textarea>
+          <input id="tech-hint" type="text" placeholder="Optional stack hint (e.g. React)" />
+          <button id="send-query" type="submit">Start workflow <span>↗</span></button>
+        </form>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

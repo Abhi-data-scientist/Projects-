@@ -1,0 +1,15 @@
+{
+  "hinglish": [
+    "bakwas", "bakchodi", "bewakoof", "chutiya", "gandu", "madarchod",
+    "behenchod", "kutta", "kutte", "harami", "saala", "randi", "chodu",
+    "lund", "gaand", "chutiyapa", "nalayak"
+  ],
+  "english": [
+    "idiot", "stupid", "bastard", "bitch", "asshole", "fuck", "fucking",
+    "shit", "dumbass", "moron", "crap"
+  ],
+  "spam_patterns": [
+    "http://", "https://", "www.", "click here", "free prize",
+    "win now", "subscribe now", "limited offer", "claim your"
+  ]
+}

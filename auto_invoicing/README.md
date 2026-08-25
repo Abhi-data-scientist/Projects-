@@ -7,7 +7,8 @@ Single endpoint: PDF/receipt upload karo → invoice PDF seedha response me milt
 ```
 Upload (PDF/image)
   -> Text extraction (pdfplumber, fallback OCR)
-  -> Gemini structuring (JSON extraction only, no calculation)
+  -> Local Regex + NLP/NER structuring
+  -> Gemini document fallback only if local extraction has no usable invoice data
   -> Validation (required fields check)
   -> Calculation (subtotal/tax/total -- Python code se, LLM se nahi)
   -> Duplicate lookup (DB hash lookup, duplicate uploads bhi generate honge)
@@ -27,9 +28,12 @@ Upload (PDF/image)
 ### 2. Python setup
 ```bash
 pip install -r requirements.txt
+python -m spacy download en_core_web_sm
 ```
 
 > Note: WeasyPrint ko Windows pe GTK3 runtime chahiye hota hai (https://weasyprint.org/start/). Agar install me dikkat aaye to batana, alternative (xhtml2pdf) switch kar denge.
+
+> `en_core_web_sm` optional hai, lekin install karne par spaCy NER customer/company names ko better identify karega. Iske bina Regex extraction chalta rahega.
 
 ### 3. Database
 ```bash
@@ -44,7 +48,7 @@ cp .env.example .env
 
 ### 5. Run
 ```bash
-python run.py
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 Server: `http://localhost:8000`
 
