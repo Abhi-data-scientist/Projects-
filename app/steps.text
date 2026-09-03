@@ -1,0 +1,9 @@
+Project Flow
+
+1. User registers or logs in.
+2. User sends text or voice message.
+3. Voice message is converted to text.
+4. Chat helps with booking, viewing, or cancelling seats.
+5. Booking data is saved in the database.
+6. Chat history is saved in data/chat_history.json.
+7. Each chat message keeps its user ID and session ID.

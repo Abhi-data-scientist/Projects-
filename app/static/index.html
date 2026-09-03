@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>REGEX CAFE</title>
+  <style>
+    :root{--bg:#13110f;--surface:#1b1814;--card:#242019;--border:#393126;--text:#f1ece3;--muted:#a99e91;--accent:#d2a65b;--green:#67be85;--red:#ed7777}
+    *{box-sizing:border-box} body{margin:0;height:100vh;overflow:hidden;background:var(--bg);color:var(--text);font:14px system-ui,sans-serif}
+    button,input,textarea{font:inherit} button{cursor:pointer}.hidden{display:none!important}
+    header{height:68px;padding:0 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
+    h1{font-size:17px;margin:0}header small,.seat small,.booking small{color:var(--muted)}
+    .app{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 68px);overflow:hidden}
+    aside{border-right:1px solid var(--border);padding:16px;overflow-y:auto;scrollbar-width:none}.panel-title{font-weight:700;margin:0 0 12px}
+    .seat,.booking{background:var(--card);padding:10px;border-radius:8px;margin:7px 0}.seat{border-left:3px solid var(--green)}.seat.booked{border-color:var(--red)}.bookings{margin-top:28px}
+    .cancel{color:var(--red);background:none;border:1px solid var(--red);border-radius:5px;padding:4px 7px;margin-top:7px}
+    .chat{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}.messages{flex:1;min-height:0;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:12px;scrollbar-width:none}
+    aside::-webkit-scrollbar,.messages::-webkit-scrollbar{display:none}
+    .message{max-width:75%;line-height:1.45;white-space:pre-wrap;padding:11px 13px;border-radius:12px;background:var(--card);align-self:flex-start}.message.user{background:#805e34;align-self:flex-end}
+    .composer{padding:14px;border-top:1px solid var(--border);display:flex;gap:8px}.composer textarea{resize:none;flex:1;height:46px}
+    .input{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px}.input::placeholder{color:var(--muted);opacity:1}.input:-webkit-autofill,.input:-webkit-autofill:hover,.input:-webkit-autofill:focus{-webkit-text-fill-color:var(--text);-webkit-box-shadow:0 0 0 1000px var(--card) inset;transition:background-color 9999s ease-out}.primary{background:var(--accent);color:#21190d;border:0;border-radius:8px;padding:9px 14px;font-weight:700}.secondary{background:none;color:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:8px 12px}
+    .auth{position:fixed;inset:0;z-index:5;background:var(--bg);display:grid;place-items:center}.auth-card{width:min(420px,calc(100% - 32px));background:var(--surface);border:1px solid var(--border);padding:28px;border-radius:14px}.auth-card h2{margin:0 0 8px}.auth-card p{color:var(--muted)}.auth-card input{width:100%;margin:6px 0}.tabs,.user-menu{display:flex;gap:8px;align-items:center}.tabs{margin:16px 0}.tabs button{flex:1}.auth-error{min-height:20px;color:var(--red);margin-top:8px}.audio{padding:7px 12px}
+    @media(max-width:720px){.app{grid-template-columns:1fr}aside{display:none}.message{max-width:90%}}
+  </style>
+</head>
+<body>
+  <section id="authScreen" class="auth">
+    <div class="auth-card">
+      <h2>☕ REGEX CAFE</h2>
+      <p>Create an account, then sign in to manage your reservations.</p>
+      <div class="tabs"><button class="secondary" onclick="showAuth('login')">Sign in</button><button class="secondary" onclick="showAuth('register')">Create account</button></div>
+      <form id="loginForm" onsubmit="login(event)">
+        <input class="input" name="phone_or_email" type="email" placeholder="Email" autocomplete="off" required>
+        <input class="input" name="password" type="password" placeholder="Password" autocomplete="new-password" required>
+        <button class="primary" type="submit">Sign in</button>
+      </form>
+      <form id="registerForm" class="hidden" onsubmit="register(event)" autocomplete="off">
+        <input class="input" name="email" type="email" placeholder="Email" autocomplete="off" required>
+        <input class="input" name="phone" type="tel" placeholder="WhatsApp number, e.g. +919876543210" required>
+        <input class="input" name="password" type="password" minlength="8" placeholder="Password" autocomplete="new-password" required>
+        <button class="primary" type="submit">Create account</button>
+      </form>
+      <div id="authError" class="auth-error"></div>
+    </div>
+  </section>
+  <header><div><h1>☕ REGEX CAFE</h1><small>Book a seat with text or voice</small></div><div class="user-menu"><span id="userName"></span><button class="secondary" onclick="logout()">Log out</button></div></header>
+  <div class="app"><aside><div class="panel-title">Live seats <button class="secondary" onclick="loadSeats()">Refresh</button></div><div id="seats">Loading…</div><div class="bookings"><div class="panel-title">My bookings</div><div id="myBookings">Loading…</div></div></aside><main class="chat"><div class="messages" id="messages"></div><div class="composer"><button id="mic" class="secondary audio" onclick="toggleMic()">🎙 Speak</button><textarea id="message" class="input" placeholder="Ask about a booking or reserve a table…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendText()}"></textarea><button class="primary" onclick="sendText()">Send</button></div></main></div>
+  <script>
+    let token=localStorage.getItem('cafe_auth_token')||'',recorder,chunks=[],recording=false;
+    const $=id=>document.getElementById(id),headers=()=>token?{Authorization:'Bearer '+token}:{};
+    function showAuth(mode){$('loginForm').classList.toggle('hidden',mode!=='login');$('registerForm').classList.toggle('hidden',mode!=='register');$('authError').textContent=''}
+    async function authRequest(url,form){const r=await fetch(url,{method:'POST',body:new FormData(form)}),d=await r.json();if(!r.ok)throw Error(d.detail||'Request failed');return d}
+    async function login(e){e.preventDefault();try{await finishAuth(await authRequest('/auth/login',e.target))}catch(e){$('authError').textContent=e.message}}
+    async function register(e){e.preventDefault();try{await finishAuth(await authRequest('/auth/register',e.target))}catch(e){$('authError').textContent=e.message}}
+    async function finishAuth(d){token=d.token;localStorage.setItem('cafe_auth_token',token);$('authScreen').classList.add('hidden');$('userName').textContent=d.user.name;await initialise()}
+    async function trySession(){if(!token)return;const r=await fetch('/auth/me',{headers:headers()});if(!r.ok){localStorage.removeItem('cafe_auth_token');token='';return}$('authScreen').classList.add('hidden');$('userName').textContent=(await r.json()).name;await initialise()}
+    async function initialise(){await Promise.all([loadSeats(),loadBookings()]);if(!$('messages').children.length)await sendChat('')}
+    async function logout(){await fetch('/auth/logout',{method:'POST',headers:headers()});localStorage.removeItem('cafe_auth_token');token='';$('messages').innerHTML='';$('authScreen').classList.remove('hidden');showAuth('login')}
+    async function loadSeats(){try{const d=await(await fetch('/seats')).json();$('seats').innerHTML=(d.seats||[]).map(s=>`<div class="seat ${s.status}"><b>${esc(s.seat_number)}</b> · ${esc(s.seat_type)}<br><small>Up to ${s.capacity} · ${esc(s.status)}</small></div>`).join('')||'No seats found.'}catch{}}
+    async function loadBookings(){try{const r=await fetch('/bookings/my',{headers:headers()});if(!r.ok)return;const d=await r.json();$('myBookings').innerHTML=(d.bookings||[]).map(b=>`<div class="booking"><b>#${b.id} · ${esc(b.seat_number)}</b><br><small>${esc(String(b.booking_date))} · ${esc(String(b.checkin_time).slice(11,16))}–${esc(String(b.checkout_time).slice(11,16))}<br>${esc(b.status)}</small>${b.status==='confirmed'?`<br><button class="cancel" onclick="cancelBooking(${b.id})">Cancel</button>`:''}</div>`).join('')||'<small>No bookings yet.</small>'}catch{}}
+    async function cancelBooking(id){if(!confirm('Cancel this booking?'))return;const r=await fetch('/bookings/'+id+'/cancel',{method:'POST',headers:headers()});if(r.ok){add('bot','Booking #'+id+' has been cancelled.');loadBookings();loadSeats()}else alert((await r.json()).detail||'Could not cancel booking.')}
+    async function sendText(){const el=$('message'),msg=el.value.trim();if(!msg)return;el.value='';add('user',msg);await sendChat(msg)}
+    async function sendChat(message,audio){const fd=new FormData();if(message!==undefined)fd.append('message',message);if(audio)fd.append('audio',audio,'voice.webm');try{const r=await fetch('/chat',{method:'POST',headers:headers(),body:fd}),d=await r.json();if(!r.ok)throw Error(d.detail||'Chat failed');if(d.transcribed)add('user','🎙 '+d.transcribed);add('bot',d.reply);if(d.seats?.length)add('bot','Available seats: '+d.seats.map(s=>s.seat_number).join(', '));if(d.audio_url)new Audio(d.audio_url).play().catch(()=>{});void Promise.all([loadBookings(),loadSeats()])}catch(e){add('bot','Sorry, '+e.message)}}
+    function add(role,text){const el=document.createElement('div');el.className='message '+role;el.textContent=text;$('messages').append(el);$('messages').scrollTop=$('messages').scrollHeight}
+    async function toggleMic(){if(recording){recorder.stop();return}try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});chunks=[];recorder=new MediaRecorder(stream);recorder.ondataavailable=e=>chunks.push(e.data);recorder.onstop=()=>{stream.getTracks().forEach(t=>t.stop());recording=false;$('mic').textContent='🎙 Speak';sendChat(undefined,new Blob(chunks,{type:'audio/webm'}))};recorder.start();recording=true;$('mic').textContent='■ Stop'}catch{alert('Please allow microphone access.')}}
+    function esc(v){const d=document.createElement('div');d.textContent=v;return d.innerHTML}
+    window.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('#authScreen input').forEach(input=>input.value='');setTimeout(()=>document.querySelectorAll('#authScreen input').forEach(input=>input.value=''),100);trySession()});
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+You are an intent classifier for a database analytics assistant.
+
+The database has these tables: customers, products, orders, order_items.
+It supports analytics like: top selling products, revenue this/last month,
+revenue trends, average order value, top customers, top cities by revenue,
+most profitable category, orders this week, new customers this month.
+
+Given the user question below, decide if answering it REQUIRES querying
+this database (route = "sql"), or if it is a general knowledge / conversational
+question that does NOT need the database (route = "general").
+
+Respond with ONLY one word: "sql" or "general". No explanation, no punctuation.
+
+User question: {query}

@@ -1,0 +1,45 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Local application data
+data/chat_history.json
+data/chat_history.tmp
+audio/*.wav
+logs/*.log
+logs/*.log.*
+logs/*.jsonl
+dump.rdb
+
+# Downloaded AI models
+models/*.onnx
+models/*.onnx.json
+
+# IDE and operating-system files
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tempCodeRunnerFile.py
+*.tmp
+*.bak
