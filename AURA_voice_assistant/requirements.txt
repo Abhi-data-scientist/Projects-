@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+elevenlabs
+groq
+streamlit
+requests
+websockets
+aiortc
+pypdf
+playwright
+crawl4ai
+beautifulsoup4
+lxml

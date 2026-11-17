@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aura — AI Voice Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css?v=5.0" />
+  <style>
+    /* Critical reset */
+    svg { display: block; flex-shrink: 0; max-width: 100%; max-height: 100%; }
+    .nav-icon svg { width: 16px; height: 16px; }
+    .orb-icon { width: 30px; height: 30px; }
+    button { background: none; border: none; cursor: pointer; color: inherit; padding: 0; }
+  </style>
+</head>
+<body>
+  <!-- ─── Starfield Background ─── -->
+  <canvas id="bgCanvas"></canvas>
+
+  <div id="app">
+
+    <!-- ─── Sidebar Navigation ─── -->
+    <aside id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-orb"></div>
+        <span class="brand-text">AURA</span>
+        <span class="brand-version">v2.0</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-section-label">Modes</span>
+
+        <button class="nav-btn active" data-tab="voice" id="navVoice">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+              <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+              <line x1="12" y1="19" x2="12" y2="22"/>
+              <line x1="8" y1="22" x2="16" y2="22"/>
+            </svg>
+          </div>
+          <div class="nav-label">
+            <span class="nav-title">Voice Bot</span>
+            <span class="nav-sub">General AI chat</span>
+          </div>
+          <div class="nav-active-bar"></div>
+        </button>
+
+        <button class="nav-btn" data-tab="pdf" id="navPdf">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+              <polyline points="14,2 14,8 20,8"/>
+              <line x1="8" y1="13" x2="16" y2="13"/>
+              <line x1="8" y1="17" x2="16" y2="17"/>
+            </svg>
+          </div>
+          <div class="nav-label">
+            <span class="nav-title">PDF Agent</span>
+            <span class="nav-sub">Document voice Q&amp;A</span>
+          </div>
+          <span class="doc-badge" id="docBadge">0</span>
+          <div class="nav-active-bar"></div>
+        </button>
+
+        <button class="nav-btn" data-tab="web" id="navWeb">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 2a14.5 14.5 0 0 1 0 20 14.5 14.5 0 0 1 0-20"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+            </svg>
+          </div>
+          <div class="nav-label">
+            <span class="nav-title">News Agent</span>
+            <span class="nav-sub">Live web research</span>
+          </div>
+          <div class="nav-active-bar"></div>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <!-- Memory Indicator -->
+        <div class="memory-card" id="memCard">
+          <div class="memory-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14">
+              <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24A2.5 2.5 0 0 1 9.5 2Z"/>
+              <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24A2.5 2.5 0 0 0 14.5 2Z"/>
+            </svg>
+          </div>
+          <div class="memory-info">
+            <span class="memory-label">Memory</span>
+            <span class="memory-turns" id="memTurns">0 turns</span>
+          </div>
+          <button class="memory-clear" id="memClear" title="Clear memory">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Status Row -->
+        <div class="status-row">
+          <div class="status-dot-wrap">
+            <span class="status-dot" id="statusDot"></span>
+            <span class="status-text" id="statusText">Offline</span>
+          </div>
+          <div class="sidebar-actions">
+            <button class="theme-btn" id="themeBtn" title="Toggle theme">
+              <svg id="themeIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ─── Main Content (Unified Voice Stage) ─── -->
+    <main id="main">
+      <div class="pane-inner">
+
+        <!-- Top Bar -->
+        <div class="pane-top-bar">
+          <div class="pane-title-block">
+            <div class="mode-badge-wrap">
+              <span class="mode-badge" id="modeBadge">
+                <span class="badge-dot"></span>
+                <span id="modeBadgeText">General AI</span>
+              </span>
+            </div>
+            <h1 class="pane-title" id="stageTitle">Voice Assistant</h1>
+            <p class="pane-subtitle" id="stageSubtitle">Speak naturally in English, Hindi, or Hinglish — Aura listens and replies with voice</p>
+          </div>
+
+          <div class="pane-controls">
+            <!-- Visualizer modes (Voice tab) -->
+            <div class="viz-mode-group" id="vizModes">
+              <button class="viz-btn active" data-mode="AURA">Aura</button>
+              <button class="viz-btn" data-mode="WAVE">Wave</button>
+              <button class="viz-btn" data-mode="RADIAL">Radial</button>
+              <button class="viz-btn" data-mode="BAR">Bar</button>
+            </div>
+
+            <!-- PDF Documents Drawer Toggle (PDF Mode) -->
+            <button class="feature-drawer-btn hidden" id="docsToggleBtn" title="Manage PDF Documents">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+                <polyline points="14,2 14,8 20,8"/>
+              </svg>
+              <span>Documents</span>
+              <span class="drawer-btn-count" id="docsBtnCount">0</span>
+            </button>
+
+            <!-- News Sources Drawer Toggle (Web Mode) -->
+            <button class="feature-drawer-btn hidden" id="sourcesToggleBtn" title="Live Web Sources">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 2a14.5 14.5 0 0 1 0 20 14.5 14.5 0 0 1 0-20"/>
+              </svg>
+              <span>Live Sources</span>
+              <span class="drawer-btn-count" id="sourcesBtnCount">0</span>
+            </button>
+
+            <!-- Live Conversation Transcript Toggle -->
+            <button class="transcript-toggle-btn" id="transcriptToggle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Transcript
+            </button>
+          </div>
+        </div>
+
+        <!-- Unified Central Voice Stage (Active across all 3 modes) -->
+        <div class="voice-stage" id="voiceStage">
+          <!-- Ambient rings -->
+          <div class="ambient-ring ring-1" id="ring1"></div>
+          <div class="ambient-ring ring-2" id="ring2"></div>
+          <div class="ambient-ring ring-3" id="ring3"></div>
+
+          <!-- Canvas Visualizer -->
+          <canvas id="vizCanvas"></canvas>
+
+          <!-- Status Caption -->
+          <div class="status-caption" id="caption">Click the orb to start speaking</div>
+
+          <!-- The Central Glowing Mic Orb Button -->
+          <button class="mic-orb" id="orbBtn">
+            <div class="orb-glow"></div>
+            <div class="orb-inner">
+              <svg class="orb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="8" y1="22" x2="16" y2="22"/>
+              </svg>
+            </div>
+            <span class="orb-label" id="orbLabel">Start Talking</span>
+          </button>
+
+          <!-- Hint chips (Dynamic based on active mode) -->
+          <div class="hint-chips" id="hintChips">
+            <span class="hint-chip">"Python kya hai?"</span>
+            <span class="hint-chip">"What is quantum computing?"</span>
+            <span class="hint-chip">"Explain recursion simply"</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           DRAWER 1: TRANSCRIPT DRAWER (Slide-in)
+      ══════════════════════════════════════════ -->
+      <div class="side-drawer hidden" id="transcriptDrawer">
+        <div class="drawer-header">
+          <div class="drawer-title-group">
+            <span class="drawer-title">Live Conversation</span>
+            <span class="drawer-live-badge" id="liveBadge">
+              <span class="drawer-live-dot"></span>
+              LIVE
+            </span>
+          </div>
+          <div class="drawer-actions">
+            <button class="drawer-clear" id="clearTranscript">Clear</button>
+            <button class="drawer-close" id="closeTranscript">✕</button>
+          </div>
+        </div>
+        <div class="transcript-feed" id="voiceFeed">
+          <div class="empty-feed">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="30" height="30" style="opacity:.25">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+              <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+            </svg>
+            <p>Start talking — your conversation appears here</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           DRAWER 2: PDF DOCUMENTS DRAWER (Slide-in)
+      ══════════════════════════════════════════ -->
+      <div class="side-drawer hidden" id="docsDrawer">
+        <div class="drawer-header">
+          <div class="drawer-title-group">
+            <span class="drawer-title">Document Library</span>
+            <span class="drawer-sub-badge" id="docsDrawerBadge">0 PDFs</span>
+          </div>
+          <div class="drawer-actions">
+            <button class="icon-btn" id="refreshDocs" title="Refresh list">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                <path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+            </button>
+            <button class="drawer-close" id="closeDocsDrawer">✕</button>
+          </div>
+        </div>
+
+        <div class="drawer-body">
+          <!-- Drop Zone -->
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="fileInput" accept=".pdf" hidden />
+            <div class="drop-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17,8 12,3 7,8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <p class="drop-main">Drop PDF here</p>
+            <p class="drop-sub">or click to browse · max 25 MB</p>
+          </div>
+
+          <!-- Upload progress -->
+          <div class="upload-progress hidden" id="uploadProgress">
+            <div class="progress-spinner"></div>
+            <span id="uploadMsg">Processing…</span>
+          </div>
+
+          <!-- Documents list -->
+          <div class="doc-library">
+            <div class="doc-library-header">
+              <span>Indexed Files</span>
+            </div>
+            <div class="doc-list" id="docList">
+              <div class="doc-empty">No files uploaded yet. Add a PDF to start voice Q&amp;A.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           DRAWER 3: LIVE WEB SOURCES DRAWER (Slide-in)
+      ══════════════════════════════════════════ -->
+      <div class="side-drawer hidden" id="sourcesDrawer">
+        <div class="drawer-header">
+          <div class="drawer-title-group">
+            <span class="drawer-title">Live Web Sources</span>
+            <span class="drawer-sub-badge" id="sourcesDrawerBadge">0 sources</span>
+          </div>
+          <div class="drawer-actions">
+            <button class="drawer-close" id="closeSourcesDrawer">✕</button>
+          </div>
+        </div>
+
+        <div class="drawer-body">
+          <!-- Query title -->
+          <div class="web-sources-header">
+            <h3 id="webSrcTitle">Recent Research</h3>
+            <span class="web-src-label" id="webSrcLabel">Speak a query to search the live web</span>
+          </div>
+
+          <!-- Search spinner -->
+          <div class="web-loading hidden" id="webLoading">
+            <div class="progress-spinner"></div>
+            <span>Searching live via Serper API…</span>
+          </div>
+
+          <!-- Sources Grid -->
+          <div class="web-sources-grid" id="webGrid">
+            <div class="doc-empty">Ask any question in News Agent to see verified web sources here.</div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Hidden audio sink for WebRTC stream -->
+  <audio id="remoteAudio" autoplay playsinline hidden></audio>
+
+  <script src="/static/visualizer.js?v=5.0"></script>
+  <script src="/static/app.js?v=5.0"></script>
+</body>
+</html>
